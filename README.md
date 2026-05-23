@@ -1,0 +1,1 @@
+Este é um projeto independente feito por fã. Não possui qualquer vínculo, associação, autorização ou patrocínio com a FIFA, Panini ou entidades oficiais do futebol.
