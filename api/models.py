@@ -9,3 +9,4 @@ class Figurinha(Base):
     numero_album = Column(String, unique=True, nullable=False)
     nome = Column(String, nullable=False)
     pais = Column(String, nullable=False)
+    ordem_pais = Column(Integer, nullable=False)

@@ -56,7 +56,8 @@ def cadastrar_figurinha(
     nova_figurinha = Figurinha(
         numero_album=figurinha.numero_album,
         nome=figurinha.nome,
-        pais=figurinha.pais
+        pais=figurinha.pais,
+        ordem_pais=figurinha.ordem_pais
     )
 
     db.add(nova_figurinha)
@@ -68,13 +69,16 @@ def cadastrar_figurinha(
 
 @app.get("/figurinhas", response_model=list[FigurinhaResponse])
 def listar_figurinhas(db: Session = Depends(get_db)):
-    figurinhas = db.query(Figurinha).order_by(Figurinha.numero_album).all()
+    figurinhas = db.query(Figurinha).order_by(
+        Figurinha.ordem_pais,
+        Figurinha.numero_album
+    ).all()
     return figurinhas
 
 
 @app.get("/figurinhas/numero/{numero_album}", response_model=FigurinhaResponse)
 def buscar_figurinha_por_numero(
-    numero_album: int,
+    numero_album: str,
     db: Session = Depends(get_db)
 ):
     figurinha = db.query(Figurinha).filter(
@@ -97,7 +101,10 @@ def listar_figurinhas_por_pais(
 ):
     figurinhas = db.query(Figurinha).filter(
         Figurinha.pais.ilike(f"%{pais}%")
-    ).order_by(Figurinha.numero_album).all()
+    ).order_by(
+        Figurinha.ordem_pais,
+        Figurinha.numero_album
+    ).all()
 
     return figurinhas
 
@@ -150,6 +157,7 @@ def atualizar_figurinha(
     figurinha.numero_album = dados.numero_album
     figurinha.nome = dados.nome
     figurinha.pais = dados.pais
+    figurinha.ordem_pais = dados.ordem_pais
 
     db.commit()
     db.refresh(figurinha)

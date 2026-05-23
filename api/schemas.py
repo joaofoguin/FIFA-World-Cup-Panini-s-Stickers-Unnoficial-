@@ -5,6 +5,7 @@ class FigurinhaBase(BaseModel):
     numero_album: str
     nome: str
     pais: str
+    ordem_pais: int
 
 
 class FigurinhaCreate(FigurinhaBase):
