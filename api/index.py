@@ -186,3 +186,37 @@ def deletar_figurinha(
     return {
         "mensagem": "Figurinha removida com sucesso."
     }
+@app.post("/figurinhas/lote", response_model=list[FigurinhaResponse])
+def cadastrar_figurinhas_em_lote(
+    figurinhas: list[FigurinhaCreate],
+    db: Session = Depends(get_db)
+):
+    novas_figurinhas = []
+
+    for figurinha in figurinhas:
+        figurinha_existente = db.query(Figurinha).filter(
+            Figurinha.numero_album == figurinha.numero_album
+        ).first()
+
+        if figurinha_existente:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Já existe uma figurinha com o número {figurinha.numero_album}."
+            )
+
+        nova_figurinha = Figurinha(
+            numero_album=figurinha.numero_album,
+            nome=figurinha.nome,
+            pais=figurinha.pais,
+            ordem_pais=figurinha.ordem_pais
+        )
+
+        db.add(nova_figurinha)
+        novas_figurinhas.append(nova_figurinha)
+
+    db.commit()
+
+    for figurinha in novas_figurinhas:
+        db.refresh(figurinha)
+
+    return novas_figurinhas
