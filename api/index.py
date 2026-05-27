@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Depends, HTTPException
+import os
+
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -22,6 +24,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def verificar_api_key(x_api_key: str = Header(None)):
+    admin_api_key = os.getenv("ADMIN_API_KEY")
+
+    if not admin_api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="Chave de administrador não configurada no servidor."
+        )
+
+    if x_api_key != admin_api_key:
+        raise HTTPException(
+            status_code=403,
+            detail="Acesso negado. Chave de administrador inválida."
+        )
+
+    return True
+
 
 def get_db():
     db = SessionLocal()
@@ -41,7 +60,8 @@ def home():
 @app.post("/figurinhas", response_model=FigurinhaResponse)
 def cadastrar_figurinha(
     figurinha: FigurinhaCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    autorizado: bool = Depends(verificar_api_key)
 ):
     figurinha_existente = db.query(Figurinha).filter(
         Figurinha.numero_album == figurinha.numero_album
@@ -131,7 +151,8 @@ def buscar_figurinha_por_id(
 def atualizar_figurinha(
     figurinha_id: int,
     dados: FigurinhaUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    autorizado: bool = Depends(verificar_api_key)
 ):
     figurinha = db.query(Figurinha).filter(
         Figurinha.id == figurinha_id
@@ -168,7 +189,8 @@ def atualizar_figurinha(
 @app.delete("/figurinhas/{figurinha_id}")
 def deletar_figurinha(
     figurinha_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    autorizado: bool = Depends(verificar_api_key)
 ):
     figurinha = db.query(Figurinha).filter(
         Figurinha.id == figurinha_id
@@ -189,7 +211,8 @@ def deletar_figurinha(
 @app.post("/figurinhas/lote", response_model=list[FigurinhaResponse])
 def cadastrar_figurinhas_em_lote(
     figurinhas: list[FigurinhaCreate],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    autorizado: bool = Depends(verificar_api_key)
 ):
     novas_figurinhas = []
 
